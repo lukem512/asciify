@@ -30,31 +30,18 @@
     canvas = document.getElementById('canvas');
     photo = document.getElementById('photo');
     ascii = document.getElementById('ascii');
+    
+    clear();
 
-    // Get vendor-specific API
-    navigator.getMedia = ( navigator.getUserMedia ||
-                           navigator.webkitGetUserMedia ||
-                           navigator.mozGetUserMedia ||
-                           navigator.msGetUserMedia);
-
-    navigator.getMedia(
-      {
-        video: true,
-        audio: false
-      },
-      function(stream) {
-        if (navigator.mozGetUserMedia) {
-          video.mozSrcObject = stream;
-        } else {
-          var vendorURL = window.URL || window.webkitURL;
-          video.src = vendorURL.createObjectURL(stream);
-        }
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(stream => {
+        video.srcObject = stream;
         video.play();
-      },
-      function(err) {
-        console.error("An error occured! " + err);
-      }
-    );
+        startCapture();
+      })
+      .catch(err => {
+        console.error(`An error occured: ${err}`);
+      });
 
     video.addEventListener('canplay', function(ev){
       if (!streaming) {
@@ -74,9 +61,6 @@
         streaming = true;
       }
     }, false);
-
-    clear();
-    startCapture();
   }
 
   // Start the video capture loop.
@@ -87,7 +71,7 @@
     captureLoop(ms)
   }
 
-  function captureLoop(ms = 50) {
+  function captureLoop(ms = 100) {
     window.setTimeout(function () {
       if (capturing) {
         frame();
